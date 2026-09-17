@@ -1,7 +1,9 @@
 from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, filters
 
-TOKEN = "BU_YERGA_BOT_TOKENINGNI_YOZASAN"
+import os
+
+TOKEN = os.getenv("TOKEN")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tugma = KeyboardButton(
