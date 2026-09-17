@@ -1,0 +1,37 @@
+from telegram import Update, KeyboardButton, ReplyKeyboardMarkup
+from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, filters
+
+TOKEN = "BU_YERGA_BOT_TOKENINGNI_YOZASAN"
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    tugma = KeyboardButton(
+        "📍 Lokatsiyamni yuborish",
+        request_location=True
+    )
+
+    keyboard = [[tugma]]
+
+    await update.message.reply_text(
+        "Chiqindini olib ketish uchun lokatsiyangizni yuboring 📍",
+        reply_markup=ReplyKeyboardMarkup(
+            keyboard,
+            resize_keyboard=True,
+            one_time_keyboard=True
+        )
+    )
+
+async def location(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    loc = update.message.location
+
+    await update.message.reply_text(
+        f"Lokatsiya qabul qilindi ✅\n"
+        f"Latitude: {loc.latitude}\n"
+        f"Longitude: {loc.longitude}"
+    )
+
+app = Application.builder().token(TOKEN).build()
+
+app.add_handler(CommandHandler("start", start))
+app.add_handler(MessageHandler(filters.LOCATION, location))
+
+app.run_polling()
