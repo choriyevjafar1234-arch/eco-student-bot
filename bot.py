@@ -14,7 +14,7 @@ TOKEN = os.getenv("TOKEN")
 import os
 ADMIN_ID = int(os.getenv("ADMIN_ID"))
 
-bot = Bot(token=BOT_TOKEN)
+bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
 DB_NAME = "locations.db"
