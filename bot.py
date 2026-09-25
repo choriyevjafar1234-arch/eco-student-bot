@@ -4,17 +4,24 @@ import re
 import sqlite3
 from datetime import datetime
 from aiogram import Bot, Dispatcher
+from aiogram.client.session.aiohttp import AiohttpSession
+from aiogram.exceptions import TelegramNetworkError, TelegramRetryAfter
 from aiogram.filters import CommandStart, Command, StateFilter
 from aiogram.types import KeyboardButton, ReplyKeyboardMarkup, Message
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
 TOKEN = os.getenv("TOKEN")
-import os
 ADMIN_ID = int(os.getenv("ADMIN_ID"))
 
-bot = Bot(token=TOKEN)
+# Internet vaqtincha uzilib qolsa ham so'rov osilib qolmasligi uchun
+# oddiy (kengroq) timeout bilan session yaratamiz.
+session = AiohttpSession(timeout=60)
+bot = Bot(token=TOKEN, session=session)
 dp = Dispatcher()
 
 DB_NAME = "locations.db"
@@ -452,7 +459,19 @@ async def main():
     logging.basicConfig(level=logging.INFO)
     init_db()
     print("Bot ishga tushdi...")
-    await dp.start_polling(bot)
+
+    # Internet vaqtincha uzilib qolsa (TelegramNetworkError va h.k.),
+    # bot butunlay to'xtab qolmasin, biroz kutib qayta ulanishga urinadi.
+    while True:
+        try:
+            await dp.start_polling(bot)
+            break  # start_polling normal to'xtasa (masalan, dp.stop_polling), sikldan chiqamiz
+        except (TelegramNetworkError, TelegramRetryAfter) as e:
+            logging.error(f"Tarmoq xatosi, 10 soniyadan keyin qayta urinilyapti: {e}")
+            await asyncio.sleep(10)
+        except Exception as e:
+            logging.error(f"Kutilmagan xato, 10 soniyadan keyin qayta urinilyapti: {e}")
+            await asyncio.sleep(10)
 
 
 if __name__ == "__main__":
